@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
 
+export async function generateStaticParams() {
+  return []; // Will be populated with real slugs in Phase 4
+
+}
+
 interface FruitDetailPageProps {
   params: Promise<{ slug: string }>;
 }

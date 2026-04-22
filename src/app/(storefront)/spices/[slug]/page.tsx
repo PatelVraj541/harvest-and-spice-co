@@ -4,6 +4,10 @@ interface SpiceDetailPageProps {
   params: Promise<{ slug: string }>;
 }
 
+export async function generateStaticParams() {
+  return []; // Will be populated with real slugs in Phase 4
+}
+
 export async function generateMetadata({ params }: SpiceDetailPageProps): Promise<Metadata> {
   const { slug } = await params;
   const name = slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
