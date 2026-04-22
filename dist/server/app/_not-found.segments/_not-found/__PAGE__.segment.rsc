@@ -1,0 +1,5 @@
+1:"$Sreact.fragment"
+2:I[97367,["/_next/static/chunks/2f236954d6a65e12.js"],"OutletBoundary"]
+3:"$Sreact.suspense"
+0:{"buildId":"T7yMfrRjsVr7kbWGuvAcP","rsc":["$","$1","c",{"children":[["$","div",null,{"className":"min-h-screen bg-cream flex items-center justify-center px-6","children":["$","div",null,{"className":"text-center","children":[["$","span",null,{"className":"text-6xl mb-6 block","children":"🌿"}],["$","h1",null,{"className":"font-heading text-4xl font-bold text-bark mb-4","children":"404"}],["$","p",null,{"className":"text-bark-light text-lg mb-8 max-w-md","children":"This page seems to have gone out of season. Let's get you back to the good stuff."}],["$","a",null,{"href":"/","className":"inline-block bg-terracotta hover:bg-terracotta-dark text-cream font-semibold px-8 py-3 rounded-xl transition-all hover:shadow-lg","children":"Back to Home"}]]}]}],null,["$","$L2",null,{"children":["$","$3",null,{"name":"Next.MetadataOutlet","children":"$@4"}]}]]}],"loading":null,"isPartial":false}
+4:null

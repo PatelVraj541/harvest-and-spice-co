@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/(storefront)/layout,_N_T_/(storefront)/spices/layout,_N_T_/(storefront)/spices/page,_N_T_/spices"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/!KHN0b3JlZnJvbnQp/spices/__PAGE__",
+    "/!KHN0b3JlZnJvbnQp/spices",
+    "/!KHN0b3JlZnJvbnQp",
+    "/_index",
+    "/_head"
+  ]
+}

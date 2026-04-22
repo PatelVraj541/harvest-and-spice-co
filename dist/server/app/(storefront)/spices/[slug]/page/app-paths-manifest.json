@@ -1,0 +1,3 @@
+{
+  "/(storefront)/spices/[slug]/page": "app/(storefront)/spices/[slug]/page.js"
+}
