@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /account/
+Disallow: /admin/
+Disallow: /api/
+Disallow: /checkout/
+Sitemap: https://patelvraj541.github.io/harvest-and-spice-co/
