@@ -1,0 +1,134 @@
+# Master Plan: Premium Spices & Seasonal Fruits E-Commerce Platform
+# ================================================================
+# Phases are designed for maximum parallelization.
+# Dependencies between phases are marked explicitly.
+
+# ────────────────────────────────────────────────────────────────
+# PHASE 0: Project Initialization
+# ────────────────────────────────────────────────────────────────
+# Estimated: 1 session | Blocks: ALL other phases
+
+- [ ] Initialize Next.js project (App Router, TypeScript, Tailwind CSS)
+- [ ] Install core dependencies (zustand, stripe, @supabase/ssr, cloudinary)
+- [ ] Configure environment variables (.env.local.example)
+- [ ] Set up Tailwind theme (organic color palette, typography - Playfair Display + Inter)
+- [ ] Create project folder structure (as defined in system-design.md)
+- [ ] Configure next.config.ts (Cloudinary image domains, redirects)
+
+# ────────────────────────────────────────────────────────────────
+# PHASE 1: Core Auth & Database Setup
+# ────────────────────────────────────────────────────────────────
+# Estimated: 2 sessions | Blocks: Phase 2, 3, 4
+# Can parallelize: [1A] and [1B] are independent
+
+## [1A] Supabase Database Schema
+- [ ] Write migration: 001_create_profiles.sql (profiles + addresses)
+- [ ] Write migration: 002_create_categories.sql
+- [ ] Write migration: 003_create_products.sql (products, variants, images)
+- [ ] Write migration: 004_create_orders.sql (orders, order_items, cart_items)
+- [ ] Write migration: 005_create_subscriptions.sql (plans, items, user_subscriptions)
+- [ ] Write migration: 006_create_seasonal_rules.sql (rules + is_product_available function)
+- [ ] Create storefront_products view
+- [ ] Set up Row Level Security policies for all tables
+- [ ] Write seed.sql with sample spices, fruits, and seasonal rules
+
+## [1B] Auth & Middleware
+- [ ] Configure Supabase Auth client (browser + server)
+- [ ] Create auth callback route handler
+- [ ] Build Next.js middleware for protected routes
+- [ ] Create Zustand auth store
+- [ ] Build Login page (/login)
+- [ ] Build Register page (/register)
+- [ ] Build basic Profile page (/profile)
+
+# ────────────────────────────────────────────────────────────────
+# PHASE 2: Seasonal Logic Engine
+# ────────────────────────────────────────────────────────────────
+# Estimated: 1-2 sessions | Depends on: Phase 1A
+# Can parallelize: [2A] and [2B] are independent
+
+## [2A] Backend Seasonal Logic
+- [ ] Verify is_product_available() function handles edge cases
+- [ ] Create Supabase Edge Function: daily catalog revalidation trigger
+- [ ] Build API route for fetching seasonal products with filters
+- [ ] Add client-side seasonal availability hook (use-seasonal.ts)
+
+## [2B] Admin Seasonal Management
+- [ ] Build admin page: manage seasonal rules per product
+- [ ] Add seasonal rule CRUD (create, edit, delete rules)
+- [ ] Preview: "Show products visible on [selected date]" tool
+- [ ] Seasonal badge component (shows "In Season", "Coming Soon", "Last Days")
+
+# ────────────────────────────────────────────────────────────────
+# PHASE 3: Spice Subscription Module
+# ────────────────────────────────────────────────────────────────
+# Estimated: 2 sessions | Depends on: Phase 1A, Phase 1B
+# Can parallelize: [3A] and [3B] after Stripe setup
+
+## [3A] Stripe Subscription Backend
+- [ ] Configure Stripe products and prices for subscription plans
+- [ ] Build API route: create Stripe Checkout session (subscription mode)
+- [ ] Build API route: Stripe webhook handler
+  - [ ] Handle: checkout.session.completed
+  - [ ] Handle: invoice.paid
+  - [ ] Handle: customer.subscription.updated
+  - [ ] Handle: customer.subscription.deleted
+- [ ] Sync subscription status to user_subscriptions table
+
+## [3B] Subscription Frontend
+- [ ] Build subscription plans page (/subscriptions)
+- [ ] Build "How It Works" section with step-by-step visual
+- [ ] Build subscription management page (/account/subscriptions)
+  - [ ] Display active subscription details
+  - [ ] Pause / Resume functionality
+  - [ ] Cancel at period end
+- [ ] Build subscription success/confirmation page
+
+# ────────────────────────────────────────────────────────────────
+# PHASE 4: High-Performance Frontend with SEO
+# ────────────────────────────────────────────────────────────────
+# Estimated: 3-4 sessions | Depends on: Phase 1, 2
+# Can parallelize: [4A], [4B], [4C], [4D] are largely independent
+
+## [4A] Core Layout & Navigation
+- [ ] Build root layout with Google Fonts (Playfair Display + Inter)
+- [ ] Build Header component (logo, nav, cart icon with badge, auth)
+- [ ] Build Footer component (links, newsletter, social)
+- [ ] Build MobileNav component (bottom nav bar, hamburger menu)
+- [ ] Build storefront layout (wraps header + footer)
+
+## [4B] Product Pages
+- [ ] Build ProductCard component (image, name, price, variant pills)
+- [ ] Build ProductGrid component (responsive bento-style grid)
+- [ ] Build Spice Catalog page (/spices) with filters and sorting
+- [ ] Build Fruit Catalog page (/fruits) with seasonal indicators
+- [ ] Build Product Detail page (image gallery, variant selector, add-to-cart)
+- [ ] Build VariantSelector component (weight buttons: 50g, 100g, 500g)
+- [ ] Build related products section
+
+## [4C] Cart & Checkout
+- [ ] Build Zustand cart store with persistence
+- [ ] Build CartDrawer component (slide-out sidebar)
+- [ ] Build Cart page (/cart) with item list, quantity controls
+- [ ] Build checkout flow → Stripe Checkout redirect
+- [ ] Build order confirmation page (/checkout/success)
+- [ ] Build order history page (/account/orders)
+
+## [4D] Homepage & SEO
+- [ ] Build hero section (full-bleed seasonal imagery, CTA)
+- [ ] Build "Featured Spices" section (curated product grid)
+- [ ] Build "In Season Now" section (dynamic seasonal fruits)
+- [ ] Build "Why Choose Us" section (trust badges, values)
+- [ ] Build "Subscription CTA" section (monthly box promo)
+- [ ] Implement generateMetadata() on every page
+- [ ] Add JSON-LD structured data (Product, Offer, BreadcrumbList)
+- [ ] Set up robots.ts and sitemap.ts
+- [ ] Add Open Graph and Twitter Card meta tags
+
+## [4E] Polish & Performance
+- [ ] Configure Cloudinary image loader for Next.js
+- [ ] Add blur placeholders for all product images
+- [ ] Implement scroll-triggered animations (Intersection Observer)
+- [ ] Add hover micro-animations on product cards
+- [ ] Lighthouse audit and performance optimization
+- [ ] Cross-browser and mobile responsiveness testing

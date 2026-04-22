@@ -1,26 +1,140 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap");
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ─── Design Tokens ─────────────────────────────────── */
+@theme {
+  /* ── Earthy & Muted Palette ────────────────────────── */
+
+  /* Primary: Olive — fresh, organic, grounded */
+  --color-forest: #5C6B3C;
+  --color-forest-light: #738C4A;
+  --color-forest-dark: #4A5630;
+
+  /* Accent: Soft Clay — warm, inviting CTAs */
+  --color-terracotta: #C4652A;
+  --color-terracotta-light: #D8845A;
+  --color-terracotta-dark: #A85221;
+
+  /* Background: Warm Sand — light, airy, fresh */
+  --color-cream: #F5EFE6;
+  --color-cream-dark: #E8DFD0;
+
+  /* Highlight: Warm Honey — subtle accents */
+  --color-gold: #C8A94E;
+  --color-gold-light: #DBBF6B;
+  --color-gold-dark: #A68D3A;
+
+  /* Text: Dark Espresso — softer than pure black */
+  --color-bark: #2C2418;
+  --color-bark-light: #6B5D4F;
+
+  /* Secondary: Muted Sage — fresh, organic feel */
+  --color-sage: #7FA06E;
+  --color-sage-light: #A3C295;
+
+  /* Utility tones */
+  --color-spice-red: #B63A2E;
+  --color-turmeric: #D9AB23;
+  --color-cinnamon: #7A5230;
+
+  --font-heading: "Playfair Display", serif;
+  --font-body: "Inter", sans-serif;
+
+  /* Animation Keyframes */
+  --animate-fade-in: fade-in 0.6s ease-out forwards;
+  --animate-slide-up: slide-up 0.5s ease-out forwards;
+  --animate-scale-in: scale-in 0.3s ease-out forwards;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ─── Base Styles ───────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
+  color: var(--color-bark);
+  background-color: var(--color-cream);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  color: var(--color-bark);
+}
+
+/* ─── Scrollbar ─────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-cream);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-sage);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-forest);
+}
+
+/* ─── Selection ─────────────────────────────────────── */
+::selection {
+  background-color: var(--color-gold-light);
+  color: var(--color-bark);
+}
+
+/* ─── Utilities ─────────────────────────────────────── */
+.text-balance {
+  text-wrap: balance;
+}
+
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.6s ease-out,
+    transform 0.6s ease-out;
+}
+
+.animate-on-scroll.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
