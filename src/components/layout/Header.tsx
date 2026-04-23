@@ -1,32 +1,69 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { useCartStore } from "@/stores/cart-store";
+import type { User } from "@supabase/supabase-js";
 
 export default function Header() {
+  const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
+  // Scroll detection
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
-
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Lock body scroll when menu is open
+  // Auth state listener
   useEffect(() => {
-    if (menuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
+    const supabase = createClient();
+
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
   }, [menuOpen]);
+
+  // Close user dropdown on outside click
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    const close = () => setUserMenuOpen(false);
+    window.addEventListener("click", close);
+    return () => window.removeEventListener("click", close);
+  }, [userMenuOpen]);
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setUserMenuOpen(false);
+    setMenuOpen(false);
+    router.push("/");
+    router.refresh();
+  }
+
+  const userInitial = user?.user_metadata?.full_name
+    ? user.user_metadata.full_name.charAt(0).toUpperCase()
+    : user?.email?.charAt(0).toUpperCase() ?? "?";
 
   const navLinks = [
     { href: "/", label: "Home" },
@@ -34,6 +71,8 @@ export default function Header() {
     { href: "/fruits", label: "Seasonal Fruits" },
     { href: "/subscriptions", label: "Subscriptions" },
   ];
+
+  const cartCount = useCartStore((s) => s.items.reduce((sum, i) => sum + i.quantity, 0));
 
   return (
     <>
@@ -83,7 +122,7 @@ export default function Header() {
             {/* Cart */}
             <a
               href="/cart"
-              className={`flex items-center gap-1.5 transition-colors duration-300 ${scrolled ? "text-cream/80 hover:text-gold" : "text-cream hover:text-gold"}`}
+              className={`relative flex items-center gap-1.5 transition-colors duration-300 ${scrolled ? "text-cream/80 hover:text-gold" : "text-cream hover:text-gold"}`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="8" cy="21" r="1" />
@@ -91,33 +130,79 @@ export default function Header() {
                 <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
               </svg>
               Cart
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 w-5 h-5 bg-terracotta text-cream text-[10px] font-bold rounded-full flex items-center justify-center animate-scale-in">
+                  {cartCount > 9 ? '9+' : cartCount}
+                </span>
+              )}
             </a>
 
-            {/* Sign In */}
-            <a
-              href="/login"
-              className={`
-                flex items-center gap-1.5 transition-all duration-300
-                ${
-                  scrolled
+            {/* Auth: Sign In or User Menu */}
+            {user ? (
+              <div className="relative">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setUserMenuOpen(!userMenuOpen); }}
+                  className={`
+                    flex items-center gap-2 transition-all duration-300
+                    ${scrolled
+                      ? "bg-cream/10 hover:bg-cream/20 text-cream px-2 py-1.5 rounded-full border border-cream/15"
+                      : "text-cream hover:text-gold px-2 py-1.5"
+                    }
+                  `}
+                >
+                  <span className="w-7 h-7 rounded-full bg-terracotta text-cream flex items-center justify-center text-xs font-bold">
+                    {userInitial}
+                  </span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+
+                {/* Dropdown */}
+                {userMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-lg border border-cream-dark overflow-hidden animate-scale-in">
+                    <div className="px-4 py-3 border-b border-cream-dark">
+                      <p className="text-sm font-medium text-bark truncate">{user.user_metadata?.full_name || "User"}</p>
+                      <p className="text-xs text-bark-light truncate">{user.email}</p>
+                    </div>
+                    <a href="/account/orders" className="flex items-center gap-2 px-4 py-2.5 text-sm text-bark hover:bg-cream transition-colors">
+                      📦 My Orders
+                    </a>
+                    <a href="/profile" className="flex items-center gap-2 px-4 py-2.5 text-sm text-bark hover:bg-cream transition-colors">
+                      👤 Profile
+                    </a>
+                    <button
+                      onClick={handleSignOut}
+                      className="flex items-center gap-2 w-full px-4 py-2.5 text-sm text-spice-red hover:bg-spice-red/5 transition-colors border-t border-cream-dark"
+                    >
+                      🚪 Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <a
+                href="/login"
+                className={`
+                  flex items-center gap-1.5 transition-all duration-300
+                  ${scrolled
                     ? "bg-cream/10 hover:bg-cream/20 text-cream px-3 py-1.5 rounded-full border border-cream/15"
                     : "text-cream hover:text-gold"
-                }
-              `}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-              Sign In
-            </a>
+                  }
+                `}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                Sign In
+              </a>
+            )}
           </nav>
 
           {/* Mobile: cart, user, hamburger */}
           <div className="flex md:hidden items-center gap-3">
             <a
               href="/cart"
-              className="text-cream hover:text-gold transition-colors"
+              className="relative text-cream hover:text-gold transition-colors"
               aria-label="Cart"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -125,6 +210,11 @@ export default function Header() {
                 <circle cx="19" cy="21" r="1" />
                 <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
               </svg>
+              {cartCount > 0 && (
+                <span className="absolute -top-2 -right-2 w-5 h-5 bg-terracotta text-cream text-[10px] font-bold rounded-full flex items-center justify-center">
+                  {cartCount > 9 ? '9+' : cartCount}
+                </span>
+              )}
             </a>
             <a
               href="/login"
@@ -249,24 +339,46 @@ export default function Header() {
 
           {/* Drawer Footer: Auth */}
           <div className="px-4 py-5 border-t border-cream/10 space-y-3">
-            <a
-              href="/login"
-              onClick={() => setMenuOpen(false)}
-              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-terracotta hover:bg-terracotta-dark text-cream font-semibold transition-colors text-sm"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
-              Sign In
-            </a>
-            <a
-              href="/register"
-              onClick={() => setMenuOpen(false)}
-              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-cream/20 text-cream/80 hover:text-cream hover:border-cream/40 font-medium transition-all text-sm"
-            >
-              Create Account
-            </a>
+            {user ? (
+              <>
+                <div className="flex items-center gap-3 px-2 mb-2">
+                  <span className="w-9 h-9 rounded-full bg-terracotta text-cream flex items-center justify-center text-sm font-bold shrink-0">
+                    {userInitial}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-cream truncate">{user.user_metadata?.full_name || "User"}</p>
+                    <p className="text-xs text-cream/50 truncate">{user.email}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleSignOut}
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-spice-red/40 text-spice-red hover:bg-spice-red/10 font-medium transition-all text-sm"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <>
+                <a
+                  href="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-terracotta hover:bg-terracotta-dark text-cream font-semibold transition-colors text-sm"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  Sign In
+                </a>
+                <a
+                  href="/register"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-cream/20 text-cream/80 hover:text-cream hover:border-cream/40 font-medium transition-all text-sm"
+                >
+                  Create Account
+                </a>
+              </>
+            )}
           </div>
         </nav>
       </div>
