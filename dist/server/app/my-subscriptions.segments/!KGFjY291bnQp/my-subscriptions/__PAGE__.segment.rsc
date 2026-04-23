@@ -1,5 +1,0 @@
-1:"$Sreact.fragment"
-2:I[97367,["/_next/static/chunks/2f236954d6a65e12.js"],"OutletBoundary"]
-3:"$Sreact.suspense"
-0:{"buildId":"T7yMfrRjsVr7kbWGuvAcP","rsc":["$","$1","c",{"children":[["$","div",null,{"children":[["$","h1",null,{"className":"font-heading text-2xl font-bold text-bark mb-6","children":"My Subscriptions"}],["$","div",null,{"className":"bg-white rounded-2xl border border-cream-dark overflow-hidden","children":["$","div",null,{"className":"p-12 text-center","children":[["$","span",null,{"className":"text-5xl mb-4 block","children":"📦"}],["$","h3",null,{"className":"font-heading text-lg font-semibold text-bark mb-2","children":"No active subscriptions"}],["$","p",null,{"className":"text-bark-light text-sm mb-6","children":"Subscribe to a monthly spice box and never run out of flavor."}],["$","a",null,{"href":"/subscriptions","className":"inline-block bg-terracotta hover:bg-terracotta-dark text-cream text-sm font-semibold px-6 py-2.5 rounded-xl transition-colors","children":"View Plans"}]]}]}]]}],null,["$","$L2",null,{"children":["$","$3",null,{"name":"Next.MetadataOutlet","children":"$@4"}]}]]}],"loading":null,"isPartial":false}
-4:null
