@@ -9,6 +9,60 @@ export const metadata: Metadata = {
   keywords: ["seasonal fruits", "fresh fruit delivery", "Alphonso mango online", "organic fruits India"],
 };
 
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+interface SeasonalRule {
+  available_from_month: number;
+  available_to_month: number;
+  label: string;
+}
+
+function isInSeason(rules: SeasonalRule[]): boolean {
+  if (!rules || rules.length === 0) return true; // No rules = always available
+  const currentMonth = new Date().getMonth() + 1; // 1-12
+
+  return rules.some((rule) => {
+    const from = rule.available_from_month;
+    const to = rule.available_to_month;
+
+    if (from <= to) {
+      // Same-year range (e.g., Apr–Jul)
+      return currentMonth >= from && currentMonth <= to;
+    } else {
+      // Cross-year range (e.g., Nov–Feb)
+      return currentMonth >= from || currentMonth <= to;
+    }
+  });
+}
+
+function getSeasonalBadge(rules: SeasonalRule[]): string {
+  if (!rules || rules.length === 0) return "Available";
+  if (isInSeason(rules)) return "In Season";
+
+  // Find next upcoming season
+  const currentMonth = new Date().getMonth() + 1;
+
+  let nearestStart = Infinity;
+  let nearestLabel = "";
+  for (const rule of rules) {
+    const from = rule.available_from_month;
+    const monthsAway = from > currentMonth ? from - currentMonth : 12 - currentMonth + from;
+    if (monthsAway < nearestStart) {
+      nearestStart = monthsAway;
+      nearestLabel = MONTH_NAMES[from - 1];
+    }
+  }
+
+  if (nearestStart <= 2) return `Coming in ${nearestLabel}`;
+  return "Out of Season";
+}
+
+function getSeasonLabel(rules: SeasonalRule[]): string {
+  if (!rules || rules.length === 0) return "";
+  const rule = rules[0];
+  return `${MONTH_NAMES[rule.available_from_month - 1]} – ${MONTH_NAMES[rule.available_to_month - 1]}`;
+}
+
 async function getFruits() {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -17,7 +71,7 @@ async function getFruits() {
       `id, name, slug, description, origin, primary_image_url, is_seasonal,
        categories!inner(name, slug, type),
        product_variants(id, label, weight_grams, price_cents, stock_quantity, sort_order),
-       product_seasonal_rules(available_from, available_to)`
+       product_seasonal_rules(available_from_month, available_to_month, label)`
     )
     .eq("is_active", true)
     .eq("categories.type", "fruit")
@@ -31,46 +85,23 @@ async function getFruits() {
   return data || [];
 }
 
-function getSeasonalBadge(rules: { available_from: string; available_to: string }[]): string | undefined {
-  if (!rules || rules.length === 0) return undefined;
-
-  const now = new Date();
-  const currentMonth = now.getMonth() + 1; // 1-12
-
-  for (const rule of rules) {
-    const fromMonth = new Date(rule.available_from).getMonth() + 1;
-    const toMonth = new Date(rule.available_to).getMonth() + 1;
-
-    if (currentMonth >= fromMonth && currentMonth <= toMonth) {
-      return "In Season";
-    }
-  }
-
-  // Find next upcoming season
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  for (const rule of rules) {
-    const fromMonth = new Date(rule.available_from).getMonth();
-    if (fromMonth > now.getMonth()) {
-      return `Coming in ${months[fromMonth]}`;
-    }
-  }
-
-  return "Out of Season";
-}
-
 export default async function FruitsPage() {
   const fruits = await getFruits();
 
   const currentMonth = new Date().toLocaleString("default", { month: "long" });
 
-  // Separate in-season and out-of-season
-  const fruitsWithBadges = fruits.map((f) => ({
-    ...f,
-    seasonalBadge: getSeasonalBadge(f.product_seasonal_rules || []),
-  }));
+  const fruitsWithBadges = fruits.map((f) => {
+    const rules = (f.product_seasonal_rules || []) as SeasonalRule[];
+    return {
+      ...f,
+      seasonalBadge: getSeasonalBadge(rules),
+      seasonLabel: getSeasonLabel(rules),
+      available: isInSeason(rules),
+    };
+  });
 
-  const inSeason = fruitsWithBadges.filter((f) => f.seasonalBadge === "In Season");
-  const others = fruitsWithBadges.filter((f) => f.seasonalBadge !== "In Season");
+  const inSeason = fruitsWithBadges.filter((f) => f.available);
+  const others = fruitsWithBadges.filter((f) => !f.available);
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
@@ -102,7 +133,7 @@ export default async function FruitsPage() {
           <p className="text-bark-light text-sm">
             {inSeason.length > 0
               ? `${inSeason.map((f) => f.name).join(", ")} ${inSeason.length === 1 ? "is" : "are"} at peak freshness right now.`
-              : "Check back soon for seasonal availability updates."}
+              : "No fruits are in season right now. Check back soon!"}
           </p>
         </div>
       </div>
